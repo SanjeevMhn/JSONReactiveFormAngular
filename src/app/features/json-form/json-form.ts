@@ -9,6 +9,7 @@ import {
   Validators,
 } from '@angular/forms';
 import {
+  BehaviorSubject,
   debounceTime,
   distinctUntilChanged,
   filter,
@@ -21,10 +22,11 @@ import {
   tap,
 } from 'rxjs';
 import { LucideAngularModule, X } from 'lucide-angular';
+import { allowedThemesValidator } from '../../utils/customValidators/allowedThemesValidator';
 
 @Component({
   selector: 'app-json-form',
-  imports: [ReactiveFormsModule, AsyncPipe, JsonPipe, KeyValuePipe, LucideAngularModule],
+  imports: [ReactiveFormsModule, AsyncPipe, KeyValuePipe, LucideAngularModule],
   templateUrl: './json-form.html',
   styleUrl: './json-form.css',
 })
@@ -32,6 +34,7 @@ export class JsonForm implements OnDestroy {
   deleteIcon = X;
   fb = inject(FormBuilder);
   jsonReactiveForm: FormGroup = this.fb.group({});
+  allowedThemes = ['light', 'dark', 'system'];
 
   noSort = () => 0;
 
@@ -86,15 +89,16 @@ export class JsonForm implements OnDestroy {
   }
 
   destroy$ = new Subject<void>();
-
   shouldDebounce = true;
 
   jsonDataChanges = this.jsonForm.get('jsonFormControl')?.valueChanges.pipe(
     startWith(JSON.stringify(this.jsonFormInitial)),
     debounceTime(500),
-    distinctUntilChanged(),
     filter((value) => {
       const isValid = this.isValidJson(value);
+      if (!isValid) {
+        this.showInvalidJSONMsg(true, 'Invalid JSON!');
+      }
       return isValid;
     }),
     map((value) => {
@@ -107,7 +111,7 @@ export class JsonForm implements OnDestroy {
         this.jsonReactiveForm.addControl(
           key,
           key == 'settings'
-            ? this.fb.group(value[key])
+            ? this.settingsFormGroup(value[key])
             : key == 'tags'
             ? this.fb.array([...value[key]])
             : key == 'members'
@@ -127,6 +131,34 @@ export class JsonForm implements OnDestroy {
         });
     })
   );
+
+  settingsFormGroup(obj: any) {
+    const group: { [key: string]: any } = {};
+    Object.entries(obj).forEach(([key, val]) => {
+      group[key] = [
+        val ?? 0,
+        key == 'refreshInterval'
+          ? [Validators.min(1)]
+          : key == 'theme'
+          ? [allowedThemesValidator(this.allowedThemes)]
+          : [],
+      ];
+    });
+
+    return this.fb.group(group);
+  }
+
+  invalidJsonMsg = {
+    show: false,
+    message: ''
+  };
+
+  showInvalidJSONMsg(state: boolean, message?:string) {
+    this.invalidJsonMsg = {
+      show: true,
+      message: message ? message : ''
+    }
+  }
 
   reactiveFormSubmit() {
     if (this.jsonReactiveForm.invalid) {

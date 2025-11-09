@@ -1,6 +1,6 @@
-<div class="grid grid-cols-1 md:grid-cols-[1fr_1fr] h-screen">
+<div class="grid grid-cols-1 lg:grid-cols-[1fr_1fr] h-screen">
   <div class="json-container flex flex-col">
-    <header class="p-[1rem_2.5rem] bg-blue-500 text-white sticky top-0">
+    <header class="p-[1rem_2.5rem] bg-blue-500 text-white sticky top-0 z-1 border-r-2 border-neutral-300">
       <h2 class="header-text">JSON</h2>
     </header>
     <form class="json-editor border-r-2 border-slate-400 grow" [formGroup]="jsonForm">
@@ -11,14 +11,23 @@
         class="outline-0! border-0! w-full h-full p-[1.5rem_2.5rem]"
         formControlName="jsonFormControl"
       ></textarea>
+
+      @if(invalidJsonMsg.show){
+      <div class="error-message shadow-lg bg-red-500/75 border-2 border-red-800">
+        <button type="button" class="float-end cursor-pointer" (click)="showInvalidJSONMsg(false)">
+          <lucide-angular [img]="deleteIcon" />
+        </button>
+        {{invalidJsonMsg.message}}
+      </div>
+      }
     </form>
   </div>
 
   <div class="reactive-form-container flex flex-col">
-    <header class="p-[1rem_2.5rem] bg-blue-500 text-white sticky top-0">
+    <header class="p-[1rem_2.5rem] bg-blue-500 text-white sticky top-0 z-1">
       <h2 class="header-text">Reactive Form</h2>
     </header>
-    <div class="reactive-form grow  p-[1.5rem_2.5rem] overflow-auto">
+    <div class="reactive-form grow  p-[1.5rem_2.5rem] overflow-auto h-full">
       @if(jsonDataChanges | async; as json){
       <form [formGroup]="jsonReactiveForm" class="form p-[2.5rem] bg-neutral-100 border-1 border-neutral-400 rounded-lg shadow-lg" (submit)="reactiveFormSubmit()">
         @for(control of jsonReactiveForm.controls | keyvalue: noSort; track $index){
@@ -79,25 +88,28 @@
                                 [id]="item.key"
                                 class="form-check-control"
                                 [formControlName]="item.key"
-                                [class]="jsonReactiveForm.get(item.key)?.errors ? 'border-red-700!' : ''"
                             />
-                            <!-- @if(jsonReactiveForm.get(item.key)?.touched || jsonReactiveForm.get(item.key)?.dirty){ -->
-                              @if(jsonReactiveForm.get(item.key)?.hasError('required')){
-                                <span class="error-text text-red-600">{{item.key}} is required</span>
-                              }
-                            <!-- } -->
-
                             </label>
                         </div>
                     } 
                     @case('theme'){
                         <div class="inner-form-group">
                             <label [for]="item.key" class="inner-form-label">{{item.key}}</label>
-                            <select [name]="item.key" [id]="item.key" class="form-control" [formControlName]="item.key">
+                            <select 
+                              [name]="item.key" 
+                              [id]="item.key" 
+                              class="form-control" 
+                              [formControlName]="item.key"
+                              [class]="jsonReactiveForm.get(`settings.${item.key}`)?.errors !== null ? 'border-2! border-red-800! outline-red-800!' : ''">
                                 <option value="light">Light</option>
                                 <option value="dark">Dark</option>
                                 <option value="system">System</option>
                             </select>
+                            @if(jsonReactiveForm.get(`settings.${item.key}`)?.errors !== null ){
+                              @if(jsonReactiveForm.get(`settings.${item.key}`)?.hasError('allowedThemes')){
+                                <span class="error-message text-red-800">Invalid theme, please choose between light, dark, system</span>
+                              }
+                            }             
                         </div>
                     }
                     @case('refreshInterval'){
@@ -111,7 +123,13 @@
                                 [id]="item.key"
                                 class="form-control"
                                 [formControlName]="item.key"
+                                [class]="jsonReactiveForm.get(`settings.${item.key}`)?.errors !== null ? ' border-2! border-red-700! outline-red-700!' : ''"
                             />
+                            @if(jsonReactiveForm.get(`settings.${item.key}`)?.errors !== null){
+                              @if(jsonReactiveForm.get(`settings.${item.key}`)?.hasError('min')){
+                                <span class="error-text text-red-800">Must be a positive number</span>
+                              }
+                            }
                         </div>
                     }
                 }
@@ -156,7 +174,7 @@
                   <input type="text" name="role" id="role" class="form-control text-[1.4rem]!" formControlName="role">
                 </div>
                 <div class="form-actions flex justify-end">
-                  <button type="submit" class="btn bg-blue-700 text-[1.4rem] text-white p-[0.4rem_0.5rem] rounded-md">Submit</button>
+                  <button type="submit" class="btn bg-blue-700 text-[1.4rem] text-white p-[0.4rem_0.5rem] rounded-md">Add</button>
                 </div>
               </form>
             </div>
