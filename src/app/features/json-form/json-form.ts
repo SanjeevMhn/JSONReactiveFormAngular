@@ -1,5 +1,5 @@
 import { AsyncPipe, JsonPipe, KeyValuePipe } from '@angular/common';
-import { AfterViewInit, Component, inject, OnDestroy } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, inject, OnDestroy, ViewChild } from '@angular/core';
 import {
   FormArray,
   FormBuilder,
@@ -8,7 +8,18 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { debounceTime, distinctUntilChanged, filter, map, of, startWith, Subject, takeUntil, tap } from 'rxjs';
+import {
+  debounceTime,
+  distinctUntilChanged,
+  filter,
+  identity,
+  map,
+  of,
+  startWith,
+  Subject,
+  takeUntil,
+  tap,
+} from 'rxjs';
 import { LucideAngularModule, X } from 'lucide-angular';
 
 @Component({
@@ -24,23 +35,30 @@ export class JsonForm implements OnDestroy {
 
   noSort = () => 0;
 
-  jsonFormInitial = {
-    name: 'Crewmojo Demo',
-    description: 'Testing reactive form coding task',
-    tags: ['angular', 'forms', 'json'],
-    settings: {
-      notifications: true,
-      theme: 'dark',
-      refreshInterval: 30,
-    },
-    members: [
-      { id: 1, name: 'Alice', role: 'Admin' },
-      { id: 2, name: 'Bob', role: 'User' },
-    ],
-  };
+  jsonFormInitial = localStorage.getItem('form')
+    ? JSON.parse(localStorage.getItem('form')!)
+    : {
+        name: 'Crewmojo Demo',
+        description: 'Testing reactive form coding task',
+        tags: ['angular', 'forms', 'json'],
+        settings: {
+          notifications: true,
+          theme: 'dark',
+          refreshInterval: 30,
+        },
+        members: [
+          { id: 1, name: 'Alice', role: 'Admin' },
+          { id: 2, name: 'Bob', role: 'User' },
+        ],
+      };
 
   jsonForm: FormGroup = new FormGroup({
     jsonFormControl: new FormControl(JSON.stringify(this.jsonFormInitial, null, 4)),
+  });
+
+  membersForm: FormGroup = new FormGroup({
+    name: new FormControl(''),
+    role: new FormControl(''),
   });
 
   get tagsArray() {
@@ -67,11 +85,13 @@ export class JsonForm implements OnDestroy {
     }
   }
 
-  destroy$ = new Subject<void>()
+  destroy$ = new Subject<void>();
+
+  shouldDebounce = true;
 
   jsonDataChanges = this.jsonForm.get('jsonFormControl')?.valueChanges.pipe(
     startWith(JSON.stringify(this.jsonFormInitial)),
-    debounceTime(900),
+    debounceTime(500),
     distinctUntilChanged(),
     filter((value) => {
       const isValid = this.isValidJson(value);
@@ -81,6 +101,7 @@ export class JsonForm implements OnDestroy {
       return JSON.parse(value);
     }),
     tap((value) => {
+      localStorage.setItem('form', JSON.stringify(value));
       this.jsonReactiveForm = this.fb.group({});
       for (const [key, val] of Object.entries(value)) {
         this.jsonReactiveForm.addControl(
@@ -91,26 +112,84 @@ export class JsonForm implements OnDestroy {
             ? this.fb.array([...value[key]])
             : key == 'members'
             ? this.fb.array([...value[key]])
+            : key == 'name'
+            ? this.fb.control(val, [Validators.required, Validators.minLength(3)])
             : this.fb.control(val)
         );
       }
-      this.jsonReactiveForm.valueChanges.pipe(
-        debounceTime(900),
-        distinctUntilChanged(),
-        takeUntil(this.destroy$)
-      ).subscribe(value => {
-        this.jsonForm.get('jsonFormControl')?.setValue(JSON.stringify(value, null, 4))
-      })
+      this.jsonReactiveForm.valueChanges
+        .pipe(debounceTime(500), distinctUntilChanged(), takeUntil(this.destroy$))
+        .subscribe((value) => {
+          this.updatedJsonFormControl(value);
+          if (this.jsonReactiveForm.invalid) {
+            this.jsonReactiveForm.markAllAsTouched();
+          }
+        });
     })
   );
 
-
   reactiveFormSubmit() {
-    console.log(this.jsonReactiveForm);
+    if (this.jsonReactiveForm.invalid) {
+      this.jsonReactiveForm.markAllAsTouched();
+      console.log(this.jsonReactiveForm);
+      return;
+    }
+  }
+
+  @ViewChild('tagInput', { static: false }) tagInputRef!: ElementRef<HTMLInputElement>;
+
+  addTag(event: KeyboardEvent) {
+    if (event.key == 'Enter') {
+      const value = (event.target as HTMLInputElement).value;
+      let updatedJson = {
+        ...this.jsonFormInitial,
+        tags: [...this.jsonFormInitial.tags, value],
+      };
+
+      this.updatedJsonFormControl(updatedJson);
+      this.tagInputRef.nativeElement.value = '';
+    }
+  }
+
+  removeTag(index: number) {
+    let updatedJson = {
+      ...this.jsonFormInitial,
+    };
+
+    updatedJson.tags.splice(index, 1);
+    this.updatedJsonFormControl(updatedJson);
+  }
+
+  addMember() {
+    if (this.membersForm.value) {
+      let updatedJson = this.jsonFormInitial;
+      updatedJson.members.push({
+        id: updatedJson.members.length + 1,
+        ...this.membersForm.value,
+      });
+      this.updatedJsonFormControl(updatedJson);
+      this.membersForm.reset();
+    }
+  }
+
+  deleteMember(index: number) {
+    let updatedJson = {
+      ...this.jsonFormInitial,
+    };
+
+    updatedJson.members.splice(index, 1);
+    this.updatedJsonFormControl(updatedJson);
+  }
+
+  updatedJsonFormControl(value: any) {
+    this.jsonFormInitial = value;
+    localStorage.setItem('form', JSON.stringify(value));
+    this.jsonForm.get('jsonFormControl')?.setValue(JSON.stringify(value, null, 4));
+    this.shouldDebounce = false;
   }
 
   ngOnDestroy(): void {
-      this.destroy$.next()
-      this.destroy$.complete()
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }
