@@ -68,7 +68,7 @@
                         </div>
                     }
                 </ul>
-                <input type="text" name="tag-input" id="" class="form-control" placeholder="Add Tag" (keydown)="addTag($event)" #tagInput>
+                <input type="text" name="tag-input" id="" class="form-control" placeholder="Tag (Press Enter to add)" (keydown)="addTag($event)" #tagInput>
             </div>
           } 
           @case('settings'){ 
@@ -174,7 +174,7 @@
                   <input type="text" name="role" id="role" class="form-control text-[1.4rem]!" formControlName="role">
                 </div>
                 <div class="form-actions flex justify-end">
-                  <button type="submit" class="btn bg-blue-700 text-[1.4rem] text-white p-[0.4rem_0.5rem] rounded-md">Add</button>
+                  <button type="submit" class="btn bg-blue-700 text-[1.4rem] text-white p-[0.4rem_0.5rem] rounded-md cursor-pointer">Add</button>
                 </div>
               </form>
             </div>
@@ -183,7 +183,7 @@
         </div>
         }
         <div class="form-actions flex justify-end pt-[4rem]">
-          <button type="submit" class="btn text-white bg-blue-600 rounded-lg p-[1rem_2.5rem] text-[1.7rem] ">Submit</button>
+          <button type="submit" class="btn text-white bg-blue-600 rounded-lg p-[1rem_2.5rem] text-[1.7rem] cursor-pointer">Submit</button>
         </div>
       </form>
       }

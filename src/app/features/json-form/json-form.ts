@@ -60,8 +60,8 @@ export class JsonForm implements OnDestroy {
   });
 
   membersForm: FormGroup = new FormGroup({
-    name: new FormControl(''),
-    role: new FormControl(''),
+    name: new FormControl('', [Validators.required]),
+    role: new FormControl('', [Validators.required]),
   });
 
   get tagsArray() {
@@ -98,6 +98,8 @@ export class JsonForm implements OnDestroy {
       const isValid = this.isValidJson(value);
       if (!isValid) {
         this.showInvalidJSONMsg(true, 'Invalid JSON!');
+      } else {
+        this.showInvalidJSONMsg(false);
       }
       return isValid;
     }),
@@ -106,31 +108,39 @@ export class JsonForm implements OnDestroy {
     }),
     tap((value) => {
       localStorage.setItem('form', JSON.stringify(value));
-      this.jsonReactiveForm = this.fb.group({});
-      for (const [key, val] of Object.entries(value)) {
-        this.jsonReactiveForm.addControl(
-          key,
-          key == 'settings'
-            ? this.settingsFormGroup(value[key])
-            : key == 'tags'
-            ? this.fb.array([...value[key]])
-            : key == 'members'
-            ? this.fb.array([...value[key]])
-            : key == 'name'
-            ? this.fb.control(val, [Validators.required, Validators.minLength(3)])
-            : this.fb.control(val)
-        );
-      }
-      this.jsonReactiveForm.valueChanges
-        .pipe(debounceTime(500), distinctUntilChanged(), takeUntil(this.destroy$))
-        .subscribe((value) => {
-          this.updatedJsonFormControl(value);
-          if (this.jsonReactiveForm.invalid) {
-            this.jsonReactiveForm.markAllAsTouched();
-          }
-        });
+      this.createReactiveForm(value);
     })
   );
+
+  createReactiveForm(value: any) {
+    this.jsonReactiveForm = this.fb.group({});
+    for (const [key, val] of Object.entries(value)) {
+      this.jsonReactiveForm.addControl(
+        key,
+        key == 'settings'
+          ? this.settingsFormGroup(value[key])
+          : key == 'tags'
+          ? this.fb.array([...value[key]])
+          : key == 'members'
+          ? this.fb.array([...value[key]])
+          : key == 'name'
+          ? this.fb.control(val, [Validators.required, Validators.minLength(3)])
+          : this.fb.control(val)
+      );
+    }
+    this.checkReactiveFormChange();
+  }
+
+  checkReactiveFormChange() {
+    this.jsonReactiveForm.valueChanges
+      .pipe(debounceTime(500), distinctUntilChanged(), takeUntil(this.destroy$))
+      .subscribe((value) => {
+        this.updatedJsonFormControl(value);
+        if (this.jsonReactiveForm.invalid) {
+          this.jsonReactiveForm.markAllAsTouched();
+        }
+      });
+  }
 
   settingsFormGroup(obj: any) {
     const group: { [key: string]: any } = {};
@@ -150,22 +160,23 @@ export class JsonForm implements OnDestroy {
 
   invalidJsonMsg = {
     show: false,
-    message: ''
+    message: '',
   };
 
-  showInvalidJSONMsg(state: boolean, message?:string) {
+  showInvalidJSONMsg(state: boolean, message?: string) {
     this.invalidJsonMsg = {
-      show: true,
-      message: message ? message : ''
-    }
+      show: state,
+      message: message ? message : '',
+    };
   }
 
   reactiveFormSubmit() {
     if (this.jsonReactiveForm.invalid) {
       this.jsonReactiveForm.markAllAsTouched();
-      console.log(this.jsonReactiveForm);
       return;
     }
+
+    console.log(this.jsonReactiveForm.value);
   }
 
   @ViewChild('tagInput', { static: false }) tagInputRef!: ElementRef<HTMLInputElement>;
@@ -173,13 +184,15 @@ export class JsonForm implements OnDestroy {
   addTag(event: KeyboardEvent) {
     if (event.key == 'Enter') {
       const value = (event.target as HTMLInputElement).value;
-      let updatedJson = {
-        ...this.jsonFormInitial,
-        tags: [...this.jsonFormInitial.tags, value],
-      };
+      if (value !== '') {
+        let updatedJson = {
+          ...this.jsonFormInitial,
+          tags: [...this.jsonFormInitial.tags, value],
+        };
 
-      this.updatedJsonFormControl(updatedJson);
-      this.tagInputRef.nativeElement.value = '';
+        this.updatedJsonFormControl(updatedJson);
+        this.tagInputRef.nativeElement.value = '';
+      }
     }
   }
 
@@ -193,15 +206,16 @@ export class JsonForm implements OnDestroy {
   }
 
   addMember() {
-    if (this.membersForm.value) {
-      let updatedJson = this.jsonFormInitial;
-      updatedJson.members.push({
-        id: updatedJson.members.length + 1,
-        ...this.membersForm.value,
-      });
-      this.updatedJsonFormControl(updatedJson);
-      this.membersForm.reset();
+    if (this.membersForm.invalid) {
+      return;
     }
+    let updatedJson = this.jsonFormInitial;
+    updatedJson.members.push({
+      id: updatedJson.members.length + 1,
+      ...this.membersForm.value,
+    });
+    this.updatedJsonFormControl(updatedJson);
+    this.membersForm.reset();
   }
 
   deleteMember(index: number) {
