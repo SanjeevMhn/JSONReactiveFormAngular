@@ -34,7 +34,7 @@
         <div class="form-group">
           <label [for]="control.key" class="form-label">{{ control.key }}</label>
           @switch(control.key){ 
-            @case ('name'){
+          @case ('name'){
                 <input
                     type="text"
                     [name]="control.key"
@@ -139,7 +139,7 @@
           }
           @case('members'){
             <div formArrayName="members" class="grid grid-cols-2 gap-[1.5rem]">
-              <table>
+              <table class="bg-neutral-200 rounded-lg border border-neutral-400">
                   <thead>
                       <th class="text-left capitalize">Id</th>
                       <th class="text-left capitalize">Name</th>
