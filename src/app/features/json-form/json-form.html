@@ -34,15 +34,15 @@
         <div class="form-group">
           <label [for]="control.key" class="form-label">{{ control.key }}</label>
           @switch(control.key){ 
-          @case ('name'){
-                <input
-                    type="text"
-                    [name]="control.key"
-                    [id]="control.key"
-                    class="form-control"
-                    [formControlName]="control.key"
-                    [class]="jsonReactiveForm.get(control.key)?.errors !== null ? ' border-2! border-red-700! outline-red-700!' : ''"
-                />
+            @case ('name'){
+              <input
+                  type="text"
+                  [name]="control.key"
+                  [id]="control.key"
+                  class="form-control"
+                  [formControlName]="control.key"
+                  [class]="jsonReactiveForm.get(control.key)?.errors !== null ? ' border-2! border-red-700! outline-red-700!' : ''"
+              />
               @if(jsonReactiveForm.get(control.key)?.errors !== null ){
                 @if(jsonReactiveForm.get(control.key)?.hasError('minlength')){
                   <span class="error-text text-red-800">Name must be atleast 3 characters long</span>
@@ -51,138 +51,138 @@
                   <span class="error-text text-red-800">Name is required</span>
                 }
               }
-          } 
-          @case('description'){
-            <textarea type="text" [name]="control.key" [id]="control.key" class="form-control" [formControlName]="control.key">
-            </textarea>
-          } 
-          @case('tags'){
-            <div class="tags-array flex flex-col gap-[1rem]" formArrayName="tags">
-                <ul class="chips-array flex items-center gap-[0.5rem] flex-wrap">
-                    @for(item of tagsArray.controls; track $index){
-                        <div class="chip-item p-[0.5rem_1rem] flex items-center rounded-full bg-neutral-300 gap-[0.5rem] text-[1.4rem]">
-                            <span class="chip-name">{{item.value}}</span>
-                            <button type="button" class="icon-container w-[1.5rem] h-[1.5rem] flex items-center rounded-full bg-black cursor-pointer" (click)="removeTag($index)">
-                                <lucide-angular [img]="deleteIcon" class="w-full h-full text-white" />
-                            </button>
-                        </div>
-                    }
-                </ul>
-                <input type="text" name="tag-input" id="" class="form-control" placeholder="Tag (Press Enter to add)" (keydown)="addTag($event)" #tagInput>
-            </div>
-          } 
-          @case('settings'){ 
-            <div class="settings-container flex flex-col gap-[1rem]" formGroupName="settings">
-             @for(item of settingsGroup.controls | keyvalue; track $index){ 
-                @switch (item.key) {
-                    @case('notifications'){
-                        <div class="inner-form-group">
-                            <label [for]="item.key" class="inner-form-label cursor-pointer">
-                                {{item.key}}
-                            </label>
-                            <label [for]="item.key" class="inner-form-label custom-checkbox cursor-pointer"
-                            >
-                            <input
-                                type="checkbox"
-                                [name]="item.key"
-                                [id]="item.key"
-                                class="form-check-control"
-                                [formControlName]="item.key"
-                            />
-                            </label>
-                        </div>
-                    } 
-                    @case('theme'){
-                        <div class="inner-form-group">
-                            <label [for]="item.key" class="inner-form-label">{{item.key}}</label>
-                            <select 
-                              [name]="item.key" 
-                              [id]="item.key" 
-                              class="form-control" 
-                              [formControlName]="item.key"
-                              [class]="jsonReactiveForm.get(`settings.${item.key}`)?.errors !== null ? 'border-2! border-red-800! outline-red-800!' : ''">
-                                <option value="light">Light</option>
-                                <option value="dark">Dark</option>
-                                <option value="system">System</option>
-                            </select>
-                            @if(jsonReactiveForm.get(`settings.${item.key}`)?.errors !== null ){
-                              @if(jsonReactiveForm.get(`settings.${item.key}`)?.hasError('allowedThemes')){
-                                <span class="error-message text-red-800">Invalid theme, please choose between light, dark, system</span>
-                              }
-                            }             
-                        </div>
-                    }
-                    @case('refreshInterval'){
-                        <div class="inner-form-group">
-                            <label [for]="item.key" class="inner-form-label pointer">
-                                {{item.key}}
-                            </label>
-                            <input
-                                type="number"
-                                [name]="item.key"
-                                [id]="item.key"
-                                class="form-control"
-                                [formControlName]="item.key"
-                                [class]="jsonReactiveForm.get(`settings.${item.key}`)?.errors !== null ? ' border-2! border-red-700! outline-red-700!' : ''"
-                            />
-                            @if(jsonReactiveForm.get(`settings.${item.key}`)?.errors !== null){
-                              @if(jsonReactiveForm.get(`settings.${item.key}`)?.hasError('min')){
-                                <span class="error-text text-red-800">Must be a positive number</span>
-                              }
-                            }
-                        </div>
-                    }
-                }
             } 
-            </div>
-           
-          }
-          @case('members'){
-            <div formArrayName="members" class="grid grid-cols-2 gap-[1.5rem]">
-              <table class="bg-neutral-200 rounded-lg border border-neutral-400">
-                  <thead>
-                      <th class="text-left capitalize">Id</th>
-                      <th class="text-left capitalize">Name</th>
-                      <th class="text-left capitalize">Role</th>
-                      <th class="text-left capitalize">Action</th>
-                  </thead>
-                  <tbody>
-                  @for(item of memberArray.controls; track item.value.id){
-                      <tr>
-                          <td>{{item.value.id}}</td>
-                          <td>{{item.value.name}}</td>
-                          <td>{{item.value.role}}</td>
-                          <td>
-                              <button type="button" class="delete-btn flex items-center gap-[0.4rem] text-white bg-red-400 border border-red-800 rounded-full p-[0.25rem_0.5rem] cursor-pointer" (click)="deleteMember($index)">
-                                  <span class="icon-container w-[1.5rem] h-[1.5rem] flex items-center justify-center ">
-                                      <lucide-angular [img]="deleteIcon" class="fill-white w-full h-full" />
-                                  </span>
-                                  <span class="label-text text-[1.2rem]">Delete</span>
+            @case('description'){
+              <textarea type="text" [name]="control.key" [id]="control.key" class="form-control" [formControlName]="control.key">
+              </textarea>
+            } 
+            @case('tags'){
+              <div class="tags-array flex flex-col gap-[1rem]" formArrayName="tags">
+                  <ul class="chips-array flex items-center gap-[0.5rem] flex-wrap">
+                      @for(item of tagsArray.controls; track $index){
+                          <div class="chip-item p-[0.5rem_1rem] flex items-center rounded-full bg-neutral-300 gap-[0.5rem] text-[1.4rem]">
+                              <span class="chip-name">{{item.value}}</span>
+                              <button type="button" class="icon-container w-[1.5rem] h-[1.5rem] flex items-center rounded-full bg-black cursor-pointer" (click)="removeTag($index)">
+                                  <lucide-angular [img]="deleteIcon" class="w-full h-full text-white" />
                               </button>
-                          </td>
-                      </tr>
+                          </div>
+                      }
+                  </ul>
+                  <input type="text" name="tag-input" id="" class="form-control" placeholder="Tag (Press Enter to add)" (keydown)="addTag($event)" #tagInput>
+              </div>
+            } 
+            @case('settings'){ 
+              <div class="settings-container flex flex-col gap-[1rem]" formGroupName="settings">
+              @for(item of settingsGroup.controls | keyvalue; track $index){ 
+                  @switch (item.key) {
+                      @case('notifications'){
+                          <div class="inner-form-group">
+                              <label [for]="item.key" class="inner-form-label cursor-pointer">
+                                  {{item.key}}
+                              </label>
+                              <label [for]="item.key" class="inner-form-label custom-checkbox cursor-pointer"
+                              >
+                              <input
+                                  type="checkbox"
+                                  [name]="item.key"
+                                  [id]="item.key"
+                                  class="form-check-control"
+                                  [formControlName]="item.key"
+                              />
+                              </label>
+                          </div>
+                      } 
+                      @case('theme'){
+                          <div class="inner-form-group">
+                              <label [for]="item.key" class="inner-form-label">{{item.key}}</label>
+                              <select 
+                                [name]="item.key" 
+                                [id]="item.key" 
+                                class="form-control" 
+                                [formControlName]="item.key"
+                                [class]="jsonReactiveForm.get(`settings.${item.key}`)?.errors !== null ? 'border-2! border-red-800! outline-red-800!' : ''">
+                                  <option value="light">Light</option>
+                                  <option value="dark">Dark</option>
+                                  <option value="system">System</option>
+                              </select>
+                              @if(jsonReactiveForm.get(`settings.${item.key}`)?.errors !== null ){
+                                @if(jsonReactiveForm.get(`settings.${item.key}`)?.hasError('allowedThemes')){
+                                  <span class="error-message text-red-800">Invalid theme, please choose between light, dark, system</span>
+                                }
+                              }             
+                          </div>
+                      }
+                      @case('refreshInterval'){
+                          <div class="inner-form-group">
+                              <label [for]="item.key" class="inner-form-label pointer">
+                                  {{item.key}}
+                              </label>
+                              <input
+                                  type="number"
+                                  [name]="item.key"
+                                  [id]="item.key"
+                                  class="form-control"
+                                  [formControlName]="item.key"
+                                  [class]="jsonReactiveForm.get(`settings.${item.key}`)?.errors !== null ? ' border-2! border-red-700! outline-red-700!' : ''"
+                              />
+                              @if(jsonReactiveForm.get(`settings.${item.key}`)?.errors !== null){
+                                @if(jsonReactiveForm.get(`settings.${item.key}`)?.hasError('min')){
+                                  <span class="error-text text-red-800">Must be a positive number</span>
+                                }
+                              }
+                          </div>
+                      }
                   }
-                  </tbody>
-              </table>
-              <form class="form inline-flex! gap-[0.4rem]!" [formGroup]="membersForm" (submit)="addMember()">
-                <div class="form-group gap-[0.4rem]!">
-                  <label for="name" class="form-label text-[1.4rem]!">Name</label>
-                  <input type="text" name="name" id="name" class="form-control text-[1.4rem]!" formControlName="name">
-                </div>
-                <div class="form-group gap-[0.4rem]!">
-                  <label for="role" class="form-label text-[1.4rem]!">Role</label>
-                  <input type="text" name="role" id="role" class="form-control text-[1.4rem]!" formControlName="role">
-                </div>
-                <div class="form-actions flex justify-end">
-                  <button type="submit" class="btn bg-blue-700 text-[1.4rem] text-white p-[0.4rem_0.5rem] rounded-md cursor-pointer">Add</button>
-                </div>
-              </form>
-            </div>
+              } 
+              </div>
+            
+            }
+            @case('members'){
+              <div formArrayName="members" class="grid grid-cols-2 gap-[1.5rem]">
+                <table class="bg-neutral-200 rounded-lg border border-neutral-400">
+                    <thead>
+                        <th class="text-left capitalize">Id</th>
+                        <th class="text-left capitalize">Name</th>
+                        <th class="text-left capitalize">Role</th>
+                        <th class="text-left capitalize">Action</th>
+                    </thead>
+                    <tbody>
+                    @for(item of memberArray.controls; track item.value.id){
+                        <tr>
+                            <td>{{item.value.id}}</td>
+                            <td>{{item.value.name}}</td>
+                            <td>{{item.value.role}}</td>
+                            <td>
+                                <button type="button" class="delete-btn flex items-center gap-[0.4rem] text-white bg-red-400 border border-red-800 rounded-full p-[0.25rem_0.5rem] cursor-pointer" (click)="deleteMember($index)">
+                                    <span class="icon-container w-[1.5rem] h-[1.5rem] flex items-center justify-center ">
+                                        <lucide-angular [img]="deleteIcon" class="fill-white w-full h-full" />
+                                    </span>
+                                    <span class="label-text text-[1.2rem]">Delete</span>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+                <form class="form inline-flex! gap-[0.4rem]!" [formGroup]="membersForm" (submit)="addMember()">
+                  <div class="form-group gap-[0.4rem]!">
+                    <label for="name" class="form-label text-[1.4rem]!">Name</label>
+                    <input type="text" name="name" id="name" class="form-control text-[1.4rem]!" formControlName="name">
+                  </div>
+                  <div class="form-group gap-[0.4rem]!">
+                    <label for="role" class="form-label text-[1.4rem]!">Role</label>
+                    <input type="text" name="role" id="role" class="form-control text-[1.4rem]!" formControlName="role">
+                  </div>
+                  <div class="form-actions flex justify-end">
+                    <button type="submit" class="btn bg-blue-700 text-[1.4rem] text-white p-[0.4rem_0.5rem] rounded-md cursor-pointer">Add</button>
+                  </div>
+                </form>
+              </div>
+            }
           }
-        }
         </div>
         }
-        <div class="form-actions flex justify-end pt-[4rem]">
+        <div class="form-actions flex justify-center mt-[2rem] pt-[2rem] border-t-1 border-neutral-400">
           <button type="submit" class="btn text-white bg-blue-600 rounded-lg p-[1rem_2.5rem] text-[1.7rem] cursor-pointer">Submit</button>
         </div>
       </form>
