@@ -1,5 +1,5 @@
-import { AsyncPipe, JsonPipe, KeyValuePipe } from '@angular/common';
-import { AfterViewInit, Component, ElementRef, inject, OnDestroy, ViewChild } from '@angular/core';
+import { AsyncPipe, KeyValuePipe } from '@angular/common';
+import { Component, ElementRef, inject, OnDestroy, ViewChild } from '@angular/core';
 import {
   FormArray,
   FormBuilder,
@@ -9,13 +9,10 @@ import {
   Validators,
 } from '@angular/forms';
 import {
-  BehaviorSubject,
   debounceTime,
   distinctUntilChanged,
   filter,
-  identity,
   map,
-  of,
   startWith,
   Subject,
   takeUntil,
@@ -23,6 +20,7 @@ import {
 } from 'rxjs';
 import { LucideAngularModule, X } from 'lucide-angular';
 import { allowedThemesValidator } from '../../utils/customValidators/allowedThemesValidator';
+import { isValidJson } from '../../utils/isValidJson';
 
 @Component({
   selector: 'app-json-form',
@@ -36,8 +34,9 @@ export class JsonForm implements OnDestroy {
   jsonReactiveForm: FormGroup = this.fb.group({});
   allowedThemes = ['light', 'dark', 'system'];
 
-  noSort = () => 0;
+  noSort = () => 0; //prevent automatic sorting for reactive form key and value
 
+  //stores the inital json form object or gets it from localstorage if available
   jsonFormInitial = localStorage.getItem('form')
     ? JSON.parse(localStorage.getItem('form')!)
     : {
@@ -55,47 +54,40 @@ export class JsonForm implements OnDestroy {
         ],
       };
 
+  //form group for json textarea
   jsonForm: FormGroup = new FormGroup({
     jsonFormControl: new FormControl(JSON.stringify(this.jsonFormInitial, null, 4)),
   });
 
+  //form group for members form
   membersForm: FormGroup = new FormGroup({
     name: new FormControl('', [Validators.required]),
     role: new FormControl('', [Validators.required]),
   });
 
+  //returns tags form array
   get tagsArray() {
     return this.jsonReactiveForm.get('tags') as FormArray;
   }
 
+  //returns members form array
   get memberArray() {
     return this.jsonReactiveForm.get('members') as FormArray;
   }
 
+  //returns settings form group
   get settingsGroup() {
     return this.jsonReactiveForm.get('settings') as FormGroup;
   }
 
-  isValidJson(jsonString: string): boolean {
-    if (typeof jsonString !== 'string' || jsonString.trim() === '') {
-      return false;
-    }
-    try {
-      JSON.parse(jsonString);
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
-
   destroy$ = new Subject<void>();
-  shouldDebounce = true;
 
+  //checks for changes in the json textarea form control
   jsonDataChanges = this.jsonForm.get('jsonFormControl')?.valueChanges.pipe(
     startWith(JSON.stringify(this.jsonFormInitial)),
     debounceTime(500),
     filter((value) => {
-      const isValid = this.isValidJson(value);
+      const isValid = isValidJson(value);
       if (!isValid) {
         this.showInvalidJSONMsg(true, 'Invalid JSON!');
       } else {
@@ -112,6 +104,7 @@ export class JsonForm implements OnDestroy {
     })
   );
 
+  //creating the reactive form from the json
   createReactiveForm(value: any) {
     this.jsonReactiveForm = this.fb.group({});
     for (const [key, val] of Object.entries(value)) {
@@ -131,6 +124,7 @@ export class JsonForm implements OnDestroy {
     this.checkReactiveFormChange();
   }
 
+  //checking for changes in the reactive form
   checkReactiveFormChange() {
     this.jsonReactiveForm.valueChanges
       .pipe(debounceTime(500), distinctUntilChanged(), takeUntil(this.destroy$))
@@ -142,6 +136,7 @@ export class JsonForm implements OnDestroy {
       });
   }
 
+  //add form controls for settings property
   settingsFormGroup(obj: any) {
     const group: { [key: string]: any } = {};
     Object.entries(obj).forEach(([key, val]) => {
@@ -170,6 +165,7 @@ export class JsonForm implements OnDestroy {
     };
   }
 
+  //when the reactive form is submitted
   reactiveFormSubmit() {
     if (this.jsonReactiveForm.invalid) {
       this.jsonReactiveForm.markAllAsTouched();
@@ -181,6 +177,7 @@ export class JsonForm implements OnDestroy {
 
   @ViewChild('tagInput', { static: false }) tagInputRef!: ElementRef<HTMLInputElement>;
 
+  //adding tags to the tag form array//
   addTag(event: KeyboardEvent) {
     if (event.key == 'Enter') {
       const value = (event.target as HTMLInputElement).value;
@@ -196,6 +193,7 @@ export class JsonForm implements OnDestroy {
     }
   }
 
+  //removing tag//
   removeTag(index: number) {
     let updatedJson = {
       ...this.jsonFormInitial,
@@ -205,19 +203,21 @@ export class JsonForm implements OnDestroy {
     this.updatedJsonFormControl(updatedJson);
   }
 
+  //adding member to member form array//
   addMember() {
     if (this.membersForm.invalid) {
       return;
     }
     let updatedJson = this.jsonFormInitial;
     updatedJson.members.push({
-      id: updatedJson.members.length + 1,
+      id: updatedJson.members[updatedJson.members.length - 1].id + 1,
       ...this.membersForm.value,
     });
     this.updatedJsonFormControl(updatedJson);
     this.membersForm.reset();
   }
 
+  //removing member
   deleteMember(index: number) {
     let updatedJson = {
       ...this.jsonFormInitial,
@@ -227,11 +227,14 @@ export class JsonForm implements OnDestroy {
     this.updatedJsonFormControl(updatedJson);
   }
 
+  /*
+    1. update the json in textarea as per reactive form changes
+    2. add the changes to localstorage
+  */
   updatedJsonFormControl(value: any) {
     this.jsonFormInitial = value;
     localStorage.setItem('form', JSON.stringify(value));
     this.jsonForm.get('jsonFormControl')?.setValue(JSON.stringify(value, null, 4));
-    this.shouldDebounce = false;
   }
 
   ngOnDestroy(): void {
