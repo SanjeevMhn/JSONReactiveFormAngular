@@ -45,8 +45,8 @@ export class JsonForm implements OnDestroy {
         tags: ['angular', 'forms', 'json'],
         settings: {
           notifications: true,
-          theme: 'dark',
           refreshInterval: 30,
+          theme: 'dark',
         },
         members: [
           { id: 1, name: 'Alice', role: 'Admin' },
