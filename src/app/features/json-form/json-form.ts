@@ -96,6 +96,7 @@ export class JsonForm implements OnDestroy {
       return isValid;
     }),
     map((value) => {
+      this.jsonFormInitial = JSON.parse(value)
       return JSON.parse(value);
     }),
     tap((value) => {
@@ -209,9 +210,12 @@ export class JsonForm implements OnDestroy {
       return;
     }
     let updatedJson = this.jsonFormInitial;
-    updatedJson.members.push({
+    updatedJson.members.length > 0 ? updatedJson.members.push({
       id: updatedJson.members[updatedJson.members.length - 1].id + 1,
       ...this.membersForm.value,
+    }) : updatedJson.members.push({
+      id: 1,
+      ...this.membersForm.value
     });
     this.updatedJsonFormControl(updatedJson);
     this.membersForm.reset();
