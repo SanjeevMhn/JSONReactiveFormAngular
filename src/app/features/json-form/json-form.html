@@ -1,9 +1,9 @@
 <div class="grid grid-cols-1 lg:grid-cols-[1fr_1fr] h-screen">
   <div class="json-container flex flex-col">
-    <header class="p-[1rem_2.5rem] bg-blue-500 text-white sticky top-0 z-1 border-r-2 border-neutral-300">
+    <header class="header p-[1rem_2.5rem] sticky top-0 z-1">
       <h2 class="header-text">JSON</h2>
     </header>
-    <form class="json-editor border-r-2 border-slate-400 grow" [formGroup]="jsonForm">
+    <form class="json-editor grow" [formGroup]="jsonForm">
       <textarea
         name="json"
         id="json"
@@ -13,7 +13,7 @@
       ></textarea>
 
       @if(invalidJsonMsg.show){
-      <div class="error-message shadow-lg bg-red-500/75 border-2 border-red-800">
+      <div class="error-json-message shadow-lg border-2 ">
         <button type="button" class="float-end cursor-pointer" (click)="showInvalidJSONMsg(false)">
           <lucide-angular [img]="deleteIcon" />
         </button>
@@ -24,12 +24,12 @@
   </div>
 
   <div class="reactive-form-container flex flex-col">
-    <header class="p-[1rem_2.5rem] bg-blue-500 text-white sticky top-0 z-1">
+    <header class="p-[1rem_2.5rem] header  sticky top-0 z-1">
       <h2 class="header-text">Reactive Form</h2>
     </header>
     <div class="reactive-form grow  p-[1.5rem_2.5rem] overflow-auto h-full">
       @if(jsonDataChanges | async; as json){
-      <form [formGroup]="jsonReactiveForm" class="form p-[2.5rem] bg-neutral-100 border-1 border-neutral-400 rounded-lg shadow-lg" (submit)="reactiveFormSubmit()">
+      <form [formGroup]="jsonReactiveForm" class="form p-[2.5rem] rounded-xl shadow-lg" (submit)="reactiveFormSubmit()">
         @for(control of jsonReactiveForm.controls | keyvalue: noSort; track $index){
         <div class="form-group">
           <label [for]="control.key" class="form-label">{{ control.key }}</label>
@@ -45,10 +45,10 @@
               />
               @if(jsonReactiveForm.get(control.key)?.errors !== null ){
                 @if(jsonReactiveForm.get(control.key)?.hasError('minlength')){
-                  <span class="error-text text-red-800">Name must be atleast 3 characters long</span>
+                  <span class="error-text ">Name must be atleast 3 characters long</span>
                 }
                 @if(jsonReactiveForm.get(control.key)?.hasError('required')){
-                  <span class="error-text text-red-800">Name is required</span>
+                  <span class="error-text ">Name is required</span>
                 }
               }
             } 
@@ -60,10 +60,10 @@
               <div class="tags-array flex flex-col gap-[1rem]" formArrayName="tags">
                   <ul class="chips-array flex items-center gap-[0.5rem] flex-wrap">
                       @for(item of tagsArray.controls; track $index){
-                          <div class="chip-item p-[0.5rem_1rem] flex items-center rounded-full bg-neutral-300 gap-[0.5rem] text-[1.4rem]">
+                          <div class="chip-item p-[0.5rem_1rem] flex items-center rounded-full gap-[0.5rem] text-[1.4rem]">
                               <span class="chip-name">{{item.value}}</span>
-                              <button type="button" class="icon-container w-[1.5rem] h-[1.5rem] flex items-center rounded-full bg-black cursor-pointer" (click)="removeTag($index)">
-                                  <lucide-angular [img]="deleteIcon" class="w-full h-full text-white" />
+                              <button type="button" class="icon-container w-[1.5rem] h-[1.5rem] flex items-center rounded-full  cursor-pointer" (click)="removeTag($index)">
+                                  <lucide-angular [img]="deleteIcon" class="w-full h-full" />
                               </button>
                           </div>
                       }
@@ -100,14 +100,14 @@
                                 [id]="item.key" 
                                 class="form-control" 
                                 [formControlName]="item.key"
-                                [class]="jsonReactiveForm.get(`settings.${item.key}`)?.errors !== null ? 'border-2! border-red-800! outline-red-800!' : ''">
+                                [class]="jsonReactiveForm.get(`settings.${item.key}`)?.errors !== null ? 'border-2! border-red-800! outline-red-800!' : ''" (change)="changeTheme($event)">
                                   <option value="light">Light</option>
                                   <option value="dark">Dark</option>
                                   <option value="system">System</option>
                               </select>
                               @if(jsonReactiveForm.get(`settings.${item.key}`)?.errors !== null ){
                                 @if(jsonReactiveForm.get(`settings.${item.key}`)?.hasError('allowedThemes')){
-                                  <span class="error-message text-red-800">Invalid theme, please choose between light, dark, system</span>
+                                  <span class="error-text">Invalid theme, please choose between light, dark, system</span>
                                 }
                               }             
                           </div>
@@ -127,7 +127,7 @@
                               />
                               @if(jsonReactiveForm.get(`settings.${item.key}`)?.errors !== null){
                                 @if(jsonReactiveForm.get(`settings.${item.key}`)?.hasError('min')){
-                                  <span class="error-text text-red-800">Must be a positive number</span>
+                                  <span class="error-text ">Must be a positive number</span>
                                 }
                               }
                           </div>
@@ -139,7 +139,8 @@
             }
             @case('members'){
               <div formArrayName="members" class="grid grid-cols-2 gap-[1.5rem]">
-                <table class="bg-neutral-200 rounded-lg border border-neutral-400">
+                <div class="table-container rounded-lg">
+                <table class="w-full">
                     <thead>
                         <th class="text-left capitalize">Id</th>
                         <th class="text-left capitalize">Name</th>
@@ -153,7 +154,7 @@
                             <td>{{item.value.name}}</td>
                             <td>{{item.value.role}}</td>
                             <td>
-                                <button type="button" class="delete-btn flex items-center gap-[0.4rem] text-white bg-red-400 border border-red-800 rounded-full p-[0.25rem_0.5rem] cursor-pointer" (click)="deleteMember($index)">
+                                <button type="button" class="delete-btn flex items-center gap-[0.4rem] rounded-full p-[0.25rem_0.5rem] cursor-pointer" (click)="deleteMember($index)">
                                     <span class="icon-container w-[1.5rem] h-[1.5rem] flex items-center justify-center ">
                                         <lucide-angular [img]="deleteIcon" class="fill-white w-full h-full" />
                                     </span>
@@ -164,6 +165,7 @@
                     }
                     </tbody>
                 </table>
+                </div>
                 <form class="form inline-flex! gap-[0.4rem]!" [formGroup]="membersForm" (submit)="addMember()">
                   <div class="form-group gap-[0.4rem]!">
                     <label for="name" class="form-label text-[1.4rem]!">Name</label>
@@ -174,7 +176,7 @@
                     <input type="text" name="role" id="role" class="form-control text-[1.4rem]!" formControlName="role">
                   </div>
                   <div class="form-actions flex justify-end">
-                    <button type="submit" class="btn bg-blue-700 text-[1.4rem] text-white p-[0.4rem_0.5rem] rounded-md cursor-pointer">Add</button>
+                    <button type="submit" class="btn text-[1.4rem] text-white p-[0.4rem_0.5rem] rounded-md cursor-pointer">Add</button>
                   </div>
                 </form>
               </div>
@@ -183,7 +185,7 @@
         </div>
         }
         <div class="form-actions flex justify-center mt-[2rem] pt-[2rem] border-t-1 border-neutral-400">
-          <button type="submit" class="btn text-white bg-blue-600 rounded-lg p-[1rem_2.5rem] text-[1.7rem] cursor-pointer">Submit</button>
+          <button type="submit" class="btn text-white rounded-lg p-[1rem_2.5rem] text-[1.7rem] cursor-pointer">Submit</button>
         </div>
       </form>
       }

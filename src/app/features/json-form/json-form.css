@@ -1,19 +1,48 @@
+.header {
+  background-color: var(--clr-primary-a0);
+  color: var(--clr-light-a0);
+}
+
+.json-editor,
+.form {
+  background-color: var(--clr-surface-a10);
+  color: var(--clr-text);
+}
+
+.reactive-form {
+  background-color: var(--clr-surface-tonal-a20);
+}
+
+.table-container {
+  background-color: var(--clr-surface-tonal-a20);
+
+  .delete-btn {
+    background-color: var(--clr-danger-a10);
+    color: var(--clr-light-a0);
+  }
+}
+
 .form {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+
+  .error-text{
+    color: var(--clr-danger-a10);
+  }
   .form-control {
     font-size: 1.7rem;
     padding: 0.3em 0.8em;
-    border: 1px solid #000;
-    border-radius: 0.5rem;
-    background-color: #ffffff;
+    /* border: 1px solid var(); */
+    border-radius: 0.8rem;
+    background-color: var(--clr-surface-tonal-a20);
   }
   .form-group,
   .inner-form-group {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
+    color: var(--clr-text);
     .form-label,
     .inner-form-label {
       font-size: 1.7rem;
@@ -30,6 +59,11 @@
       font-size: 1.5rem;
     }
   }
+  .form-actions{
+    .btn{
+      background-color: var(--clr-info-a0);
+    }
+  }
 }
 
 .custom-checkbox {
@@ -39,9 +73,9 @@
   }
   width: 5rem;
   height: 2.5rem;
-  border: 1px solid #000;
+  /* border: 1px solid #000; */
   border-radius: 100vh;
-  background-color: #ffffff;
+  background-color: var(--clr-success-a20);
   &:after {
     content: '';
     position: absolute;
@@ -51,7 +85,7 @@
     transform: translateY(-50%);
     height: var(--size);
     border-radius: 50%;
-    background-color: hsl(113, 76%, 43%);
+    background-color: var(--clr-success-a0);
     right: calc(100% - (var(--size) + 0.25rem));
     transition: all 200ms ease-in;
   }
@@ -71,7 +105,7 @@ table {
   position: relative;
   isolation: isolate;
 
-  .error-message {
+  .error-json-message {
     position: absolute;
     top: 30%;
     left: 50%;
@@ -79,12 +113,13 @@ table {
     width: min(90%, 50rem);
     padding: 2.5rem;
     border-radius: 1.2rem;
-    color: white;
     z-index: 2;
-    backdrop-filter: blur(2px);
+    background-color: #d94a4a96;
+    border: 2px solid var(--clr-danger-a0);
+    color: white;
   }
 
-  &:has(.error-message) {
+  &:has(.error-json-message) {
     &:after {
       content: '';
       width: 100%;
@@ -94,8 +129,15 @@ table {
       left: 0;
       right: 0;
       bottom: 0;
-      background-color: #00000025;
       z-index: -1;
+    }
+  }
+}
+
+.tags-array {
+  .chips-array {
+    .chip-item {
+      background-color: var(--clr-surface-tonal-a20);
     }
   }
 }

@@ -1,5 +1,13 @@
 import { AsyncPipe, KeyValuePipe } from '@angular/common';
-import { Component, ElementRef, inject, OnDestroy, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  inject,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import {
   FormArray,
   FormBuilder,
@@ -21,6 +29,7 @@ import {
 import { LucideAngularModule, X } from 'lucide-angular';
 import { allowedThemesValidator } from '../../utils/customValidators/allowedThemesValidator';
 import { isValidJson } from '../../utils/isValidJson';
+import { Theme } from '../../services/theme';
 
 @Component({
   selector: 'app-json-form',
@@ -28,13 +37,20 @@ import { isValidJson } from '../../utils/isValidJson';
   templateUrl: './json-form.html',
   styleUrl: './json-form.css',
 })
-export class JsonForm implements OnDestroy {
+export class JsonForm implements AfterViewInit, OnDestroy {
   deleteIcon = X;
   fb = inject(FormBuilder);
   jsonReactiveForm: FormGroup = this.fb.group({});
   allowedThemes = ['light', 'dark', 'system'];
+  themeService = inject(Theme);
 
   noSort = () => 0; //prevent automatic sorting for reactive form key and value
+
+  ngAfterViewInit() {
+    this.jsonReactiveForm.get('settings')?.setValue({
+      theme: this.themeService.getTheme(),
+    });
+  }
 
   //stores the inital json form object or gets it from localstorage if available
   jsonFormInitial = localStorage.getItem('form')
@@ -96,12 +112,23 @@ export class JsonForm implements OnDestroy {
       return isValid;
     }),
     map((value) => {
-      this.jsonFormInitial = JSON.parse(value)
+      this.jsonFormInitial = JSON.parse(value);
       return JSON.parse(value);
     }),
     tap((value) => {
       localStorage.setItem('form', JSON.stringify(value));
       this.createReactiveForm(value);
+      if (
+        value['settings']['theme'] == 'light' ||
+        value['settings']['theme'] == 'dark' ||
+        value['settings']['theme'] == 'system'
+      ) {
+        this.changeTheme({
+          target: {
+            value: value['settings']['theme'],
+          },
+        });
+      }
     })
   );
 
@@ -210,13 +237,15 @@ export class JsonForm implements OnDestroy {
       return;
     }
     let updatedJson = this.jsonFormInitial;
-    updatedJson.members.length > 0 ? updatedJson.members.push({
-      id: updatedJson.members[updatedJson.members.length - 1].id + 1,
-      ...this.membersForm.value,
-    }) : updatedJson.members.push({
-      id: 1,
-      ...this.membersForm.value
-    });
+    updatedJson.members.length > 0
+      ? updatedJson.members.push({
+          id: updatedJson.members[updatedJson.members.length - 1].id + 1,
+          ...this.membersForm.value,
+        })
+      : updatedJson.members.push({
+          id: 1,
+          ...this.membersForm.value,
+        });
     this.updatedJsonFormControl(updatedJson);
     this.membersForm.reset();
   }
@@ -239,6 +268,10 @@ export class JsonForm implements OnDestroy {
     this.jsonFormInitial = value;
     localStorage.setItem('form', JSON.stringify(value));
     this.jsonForm.get('jsonFormControl')?.setValue(JSON.stringify(value, null, 4));
+  }
+
+  changeTheme(event: any) {
+    this.themeService.setTheme(event.target.value);
   }
 
   ngOnDestroy(): void {
