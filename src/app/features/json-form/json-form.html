@@ -29,7 +29,7 @@
     </header>
     <div class="reactive-form grow  p-[1.5rem_2.5rem] overflow-auto h-full">
       @if(jsonDataChanges | async; as json){
-      <form [formGroup]="jsonReactiveForm" class="form p-[2.5rem] rounded-xl shadow-lg" (submit)="reactiveFormSubmit()">
+      <form [formGroup]="jsonReactiveForm" class="form p-[2.5rem] rounded-xl shadow-lg" (keydown.enter)="$event.preventDefault()">
         @for(control of jsonReactiveForm.controls | keyvalue: noSort; track $index){
         <div class="form-group">
           <label [for]="control.key" class="form-label">{{ control.key }}</label>
@@ -185,7 +185,7 @@
         </div>
         }
         <div class="form-actions flex justify-center mt-[2rem] pt-[2rem] border-t-1 border-neutral-400">
-          <button type="submit" class="btn text-white rounded-lg p-[1rem_2.5rem] text-[1.7rem] cursor-pointer">Submit</button>
+          <button type="submit" class="btn text-white rounded-lg p-[1rem_2.5rem] text-[1.7rem] cursor-pointer" (click)="reactiveFormSubmit()">Submit</button>
         </div>
       </form>
       }
