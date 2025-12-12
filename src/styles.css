@@ -142,3 +142,8 @@ body[data-theme='dark'] {
     --clr-text: var(--clr-light-a0);
   }
 }
+
+.fixed-full-width{
+  position: fixed;
+  width: 100%;
+}

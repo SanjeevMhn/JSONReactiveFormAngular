@@ -141,3 +141,19 @@ table {
     }
   }
 }
+
+
+.json-form-dialog{
+  &::backdrop{
+    background-color: rgba(0, 0, 0, 0.331);
+    backdrop-filter: blur(4px);
+  }
+  margin: auto auto;
+  background-color: unset;
+  .reactive-form-value{
+    padding: 2rem;
+    border-radius: 1.5rem;
+    background-color: var(--clr-surface-a10);
+    color: var(--clr-text);
+  }
+}

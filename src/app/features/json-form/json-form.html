@@ -192,3 +192,16 @@
     </div>
   </div>
 </div>
+
+<dialog #jsonFormDialog class="json-form-dialog " (close)="closeJsonFormDialog()">
+  <div class="reactive-form-value overflow-y-auto flex flex-col">
+    <button type="button" class="btn ml-auto cursor-pointer" (click)="closeJsonFormDialog()">
+      <span class="icon-container">
+        <lucide-angular [img]="deleteIcon" />
+      </span>
+    </button>
+  @if(reactiveFormValue !== null){
+    <pre>{{reactiveFormValue | json}}</pre>
+  }
+  </div>
+</dialog>

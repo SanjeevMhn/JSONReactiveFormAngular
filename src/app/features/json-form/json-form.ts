@@ -1,4 +1,4 @@
-import { AsyncPipe, KeyValuePipe } from '@angular/common';
+import { AsyncPipe, JsonPipe, KeyValuePipe } from '@angular/common';
 import {
   AfterViewInit,
   Component,
@@ -33,7 +33,7 @@ import { Theme } from '../../services/theme';
 
 @Component({
   selector: 'app-json-form',
-  imports: [ReactiveFormsModule, AsyncPipe, KeyValuePipe, LucideAngularModule],
+  imports: [ReactiveFormsModule, AsyncPipe, KeyValuePipe, LucideAngularModule, JsonPipe],
   templateUrl: './json-form.html',
   styleUrl: './json-form.css',
 })
@@ -194,6 +194,8 @@ export class JsonForm implements AfterViewInit, OnDestroy {
   }
 
   //when the reactive form is submitted
+  reactiveFormValue:{[key:string]: any} | null = null
+  @ViewChild('jsonFormDialog', {static: false}) jsonFormDialogRef!: ElementRef<HTMLDialogElement>
   reactiveFormSubmit() {
     if (this.jsonReactiveForm.invalid) {
       this.jsonReactiveForm.markAllAsTouched();
@@ -201,6 +203,14 @@ export class JsonForm implements AfterViewInit, OnDestroy {
     }
 
     console.log(this.jsonReactiveForm.value);
+    this.reactiveFormValue = this.jsonReactiveForm.value
+    this.jsonFormDialogRef.nativeElement.showModal()
+    document.body.classList.add('fixed-full-width')
+  }
+
+  closeJsonFormDialog(){
+    this.jsonFormDialogRef.nativeElement.close()
+    document.body.classList.remove('fixed-full-width')
   }
 
   @ViewChild('tagInput', { static: false }) tagInputRef!: ElementRef<HTMLInputElement>;
